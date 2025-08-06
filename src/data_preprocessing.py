@@ -6,7 +6,7 @@ from src.custom_exception import CustomException
 from config.paths_config import *
 from utils.common_functions import read_yaml, load_data
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import labelEncoder
+from sklearn.preprocessing import LabelEncoder
 from imblearn.over_sampling import SMOTE
 
 logger = get_logger(__name__)
@@ -34,7 +34,7 @@ class DataPreprocessor:
             num_cols = self.config_path['data_processing']['numerical_columns']
 
             logger.info('Applying label encoding')
-            labelEncoder = labelEncoder()
+            labelEncoder = LabelEncoder()
             mappings = {}
             for col in cat_cols:
                 df[col] = labelEncoder.fit_transform(df[col])
@@ -103,10 +103,33 @@ class DataPreprocessor:
     
     def save_data(self, df,file_path):
         try:
-            logger.info(f'Saving processed data to {path}')
+            logger.info(f'Saving processed data to {file_path}')
             df.to_csv(file_path, index=False)
             logger.info(f'Data saved successfully to {file_path}')
         except Exception as e:
             logger.error(f"Error during saving data step:{e}")
             raise CustomException('Error while saving data',e)
         
+    def process(self):
+        try:
+            logger.info("Loading the Data RAW directory")
+
+            train_df= load_data(self.train_path)
+            test_df = load_data(self.test_path)
+
+            train_df=self.preprocess_data(train_df)
+            test_df= self.preprocess_data(test_df)
+
+            train_df=self.balance_data(train_df)
+            test_df=self.balance_data(test_df)
+
+            train_df=self.select_features(train_df)
+            test_df=test_df[train_df.columns]
+
+            self.save_data(train_df,PROCESSED_TRAIN_DATA_PATH)
+            self.save_data(test_df,PROCESSED_TEST_DATA_PATH)
+
+            logger.info("Data processing completed successfully")
+        except Exception as e:
+            logger.error(f"Error during preprocessing pipeline {e}")
+            raise CustomException('Error during preprocessing pipeline',e)
