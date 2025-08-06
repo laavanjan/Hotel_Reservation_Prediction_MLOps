@@ -12,6 +12,9 @@ from utils.common_functions import read_yaml,load_data
 from scipy.stats import randint
 import sys
 
+import mlflow   
+import mlflow.sklearn
+
 logger = get_logger(__name__)
 
 class ModelTraining:
@@ -120,19 +123,29 @@ class ModelTraining:
 
     def run(self):
         try:
-            logger.info("Starting model training process")
+            with mlflow.start_run():
+                logger.info("Starting model training process")
 
-            X_train, y_train, X_test, y_test = self.load_and_split_data()
+                logger.info('Startinf MLFLOW experiment')
 
-            model = self.train_lgbm(X_train, y_train)
+                logger.info('Logging the training and testing dataset to MLFLOW')
+                mlflow.log_artifact(self.train_path, artifact_path='datasets')
+                mlflow.log_artifact(self.test_path, artifact_path='datasets')
 
-            evaluation_metrics = self.evaluate_model(model, X_test, y_test)
+                X_train, y_train, X_test, y_test = self.load_and_split_data()
+                model = self.train_lgbm(X_train, y_train)
+                evaluation_metrics = self.evaluate_model(model, X_test, y_test)
+                self.save_model(model)
 
-            self.save_model(model)
+                logger.info("Logging model  to MLFLOW")
+                mlflow.log_artifact(self.model_output_path)
 
-            logger.info("Model training process completed successfully")
+                logger.info("Logging params and metrics to MLFLOW")
+                mlflow.log_params(model.get_params())
+                mlflow.log_metrics(metrics=evaluation_metrics)
 
-            return evaluation_metrics   
+                logger.info("Model training process completed successfully")
+           
         except Exception as e:
             logger.error(f"Error in model training process: {e}")
             raise CustomException(f'Error in model training process: {e}', sys.exc_info())

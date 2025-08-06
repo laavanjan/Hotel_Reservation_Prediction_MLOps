@@ -17,3 +17,7 @@ logs/
 
 # Virtual environment
 venv/
+
+# MLflow
+mlruns/
+mlartifacts/
