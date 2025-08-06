@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files (if large)
+*.csv
+*.pkl
+
+# Logs
+logs/
+*.log
+
+# Virtual environment
+venv/
