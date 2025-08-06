@@ -6,3 +6,5 @@ pyyaml
 ipykernel
 matplotlib
 seaborn
+imbalanced-learn
+joblib
