@@ -1,10 +1,10 @@
 # Hotel Reservation Prediction - MLOps Project
 
-A machine learning project for predicting hotel reservation outcomes using MLOps best practices. This project implements a complete ML pipeline with proper logging, configuration management, data preprocessing, feature selection, and model training capabilities.
+A machine learning project for predicting hotel reservation outcomes using MLOps best practices. This project implements a complete ML pipeline with proper logging, configuration management, data preprocessing, feature selection, model training, and automated pipeline execution capabilities.
 
 ## Project Overview
 
-This project predicts hotel reservation patterns (Canceled vs Not_Canceled) using machine learning techniques. It's structured as an MLOps pipeline with comprehensive data ingestion, preprocessing, feature engineering, model training, and evaluation capabilities.
+This project predicts hotel reservation patterns (Canceled vs Not_Canceled) using machine learning techniques. It's structured as an MLOps pipeline with comprehensive data ingestion, preprocessing, feature engineering, model training, and evaluation capabilities with automated pipeline execution.
 
 ## Project Structure
 
@@ -12,7 +12,8 @@ This project predicts hotel reservation patterns (Canceled vs Not_Canceled) usin
 Hotel_Reservation_Prediction/
 ├── artifacts/
 │   ├── raw/                       # Raw data storage
-│   └── processed/                 # Processed data storage
+│   ├── processed/                 # Processed data storage
+│   └── models/                    # Trained model storage
 ├── config/
 │   ├── __init__.py
 │   ├── config.yaml               # Configuration parameters
@@ -24,11 +25,14 @@ Hotel_Reservation_Prediction/
 │   ├── notebook.ipynb            # Complete EDA and model development
 │   ├── random_forest.pkl         # Trained Random Forest model
 │   └── train.csv                 # Training data
+├── pipeline/
+│   └── training_pipeline.py      # Complete automated training pipeline
 ├── src/
 │   ├── __init__.py
 │   ├── custom_exception.py       # Custom exception handling
 │   ├── data_ingestion.py         # Data ingestion pipeline
 │   ├── data_preprocessing.py     # Data preprocessing pipeline
+│   ├── model_training.py         # Model training with MLflow
 │   └── logger.py                 # Logging configuration
 ├── static/                       # Static files for web interface
 ├── templates/                    # HTML templates
@@ -44,18 +48,20 @@ Hotel_Reservation_Prediction/
 
 ## Key Features
 
-- **Complete ML Pipeline**: End-to-end pipeline from data ingestion to model deployment
+- **Complete Automated ML Pipeline**: End-to-end pipeline execution with single command
 - **Data Preprocessing**: Comprehensive preprocessing including:
   - Label encoding for categorical variables
   - Skewness handling with log transformation
   - Data balancing using SMOTE
   - Feature selection using Random Forest importance
+- **Model Training**: LightGBM with hyperparameter optimization and MLflow tracking
 - **Modular Architecture**: Clean separation of concerns with dedicated modules
 - **Comprehensive Logging**: Centralized logging system with daily rotation
 - **Configuration Management**: YAML-based configuration for easy parameter tuning
 - **Custom Exception Handling**: Robust error handling with detailed error messages
 - **MLflow Integration**: Experiment tracking and model versioning support
 - **Version Control**: Proper .gitignore for ML projects
+- **Automated Pipeline Execution**: Single script to run entire pipeline
 
 ## Core Components
 
@@ -72,6 +78,21 @@ The [`DataPreprocessor`](src/data_preprocessing.py) class provides:
 - **Data Balancing**: Uses SMOTE to handle class imbalance
 - **Feature Selection**: Selects top features using Random Forest importance
 - **Data Validation**: Ensures data quality throughout the pipeline
+
+### Model Training
+The [`ModelTraining`](src/model_training.py) class provides:
+- **LightGBM Implementation**: Advanced gradient boosting algorithm
+- **Hyperparameter Optimization**: RandomizedSearchCV for optimal parameter selection
+- **MLflow Integration**: Complete experiment tracking and model versioning
+- **Comprehensive Evaluation**: Multiple performance metrics (accuracy, precision, recall, F1-score)
+- **Automated Model Persistence**: Saves trained models with joblib
+
+### Training Pipeline
+The [`training_pipeline.py`](pipeline/training_pipeline.py) provides:
+- **Automated Pipeline Execution**: Single script to run entire ML pipeline
+- **Sequential Processing**: Runs data ingestion → preprocessing → model training
+- **Error Handling**: Comprehensive error management across all pipeline stages
+- **Logging Integration**: Complete pipeline monitoring and debugging
 
 ### Configuration Management
 - [config/paths_config.py](config/paths_config.py) defines all file paths
@@ -121,7 +142,20 @@ pip install -e .
 
 ## Usage
 
-### Running the Complete Pipeline
+### Option 1: Automated Complete Pipeline (Recommended)
+
+Run the entire ML pipeline with a single command:
+
+```bash
+python pipeline/training_pipeline.py
+```
+
+This will automatically execute:
+1. **Data Ingestion**: Load and validate raw data
+2. **Data Preprocessing**: Clean, encode, balance, and select features
+3. **Model Training**: Train LightGBM model with hyperparameter tuning and MLflow tracking
+
+### Option 2: Individual Component Execution
 
 #### Data Ingestion
 ```python
@@ -142,6 +176,24 @@ from config.paths_config import TRAIN_FILE_PATH, TEST_FILE_PATH, PROCESSED_DIR, 
 # Initialize and run preprocessing
 processor = DataPreprocessor(TRAIN_FILE_PATH, TEST_FILE_PATH, PROCESSED_DIR, CONFIG_PATH)
 processor.process()
+```
+
+#### Model Training
+```python
+from src.model_training import ModelTraining
+from config.paths_config import PROCESSED_TRAIN_DATA_PATH, PROCESSED_TEST_DATA_PATH, MODEL_OUTPUT_PATH
+
+# Initialize and run model training
+trainer = ModelTraining(PROCESSED_TRAIN_DATA_PATH, PROCESSED_TEST_DATA_PATH, MODEL_OUTPUT_PATH)
+trainer.run()
+```
+
+### Option 3: Individual Module Execution
+
+```bash
+# Run individual components
+python src/data_preprocessing.py
+python src/model_training.py
 ```
 
 ### Configuration
@@ -184,12 +236,43 @@ data_processing:
 6. **Feature Selection**: Select top 10 features based on importance
 7. **Data Saving**: Save processed data for model training
 
+## Model Training Pipeline
+
+### Algorithm: LightGBM Classifier
+**Why LightGBM?**
+- Fast training speed and high efficiency
+- Lower memory usage compared to other boosting algorithms
+- Better accuracy than traditional algorithms
+- Handles categorical features automatically
+- Supports parallel and GPU learning
+
+### Training Process:
+1. **Data Loading**: Loads processed train/test datasets
+2. **Data Splitting**: Separates features (X) and target variable (y)
+3. **Model Training**: LightGBM with hyperparameter tuning via RandomizedSearchCV
+4. **Model Evaluation**: Calculates accuracy, precision, recall, and F1-score
+5. **Model Saving**: Persists trained model for deployment
+6. **MLflow Logging**: Tracks experiments, parameters, metrics, and artifacts
+
+### MLflow Integration
+The model training automatically logs:
+- **Datasets**: Training and testing data files
+- **Model**: Trained LightGBM model
+- **Parameters**: All model hyperparameters
+- **Metrics**: Performance evaluation metrics
+
+Access MLflow UI:
+```bash
+mlflow ui
+# Access at: http://localhost:5000
+```
+
 ## Model Development
 
 The project includes comprehensive model evaluation with multiple algorithms:
-- Random Forest (Best performer)
-- XGBoost
-- LightGBM
+- **LightGBM** (Current implementation)
+- Random Forest (Available in notebook)
+- XGBoost (Available in notebook)
 - Logistic Regression
 - SVM
 - Decision Tree
@@ -208,17 +291,19 @@ Model evaluation metrics include:
 Key dependencies include:
 - `pandas`: Data manipulation
 - `scikit-learn`: Machine learning algorithms
+- `lightgbm`: LightGBM classifier
 - `imbalanced-learn`: SMOTE for data balancing
-- `xgboost`, `lightgbm`: Gradient boosting algorithms
+- `mlflow`: Experiment tracking
 - `PyYAML`: Configuration management
 - `google-cloud-storage`: Cloud integration
-- `mlflow`: Experiment tracking
+- `joblib`: Model persistence
 
 ## Logging
 
 - Logs are automatically generated in the `logs/` directory
 - Daily rotation with format: `log_YYYY-MM-DD.log`
 - Comprehensive error tracking and pipeline monitoring
+- All pipeline stages are logged for debugging and monitoring
 
 ## Git Configuration
 
@@ -236,12 +321,38 @@ The project includes a comprehensive `.gitignore` that excludes:
 - Follow modular architecture for new components
 - Add comprehensive logging for debugging
 - Update configuration files for new parameters
+- Use the automated pipeline for consistent execution
 
 ## Testing
 
 Run tests using:
 ```bash
 python test.py
+```
+
+## Pipeline Execution Examples
+
+### Quick Start
+```bash
+# Run complete pipeline
+python pipeline/training_pipeline.py
+```
+
+### Development Mode
+```python
+# Step-by-step execution for debugging
+python src/data_ingestion.py      # Step 1
+python src/data_preprocessing.py  # Step 2
+python src/model_training.py      # Step 3
+```
+
+### Monitoring
+```bash
+# Check logs
+tail -f logs/log_$(date +%Y-%m-%d).log
+
+# View MLflow experiments
+mlflow ui
 ```
 
 ## Contributing
@@ -252,6 +363,7 @@ python test.py
 4. Update configuration files in `config/` for new parameters
 5. Add appropriate documentation and type hints
 6. Ensure proper error handling and logging
+7. Test changes with the automated pipeline
 
 ## Troubleshooting
 
@@ -262,6 +374,20 @@ python test.py
 3. **CustomException Errors**: Always pass `sys.exc_info()` to CustomException
 4. **Missing Dependencies**: Install all requirements from `requirements.txt`
 5. **Path Issues**: Use paths defined in `config/paths_config.py`
+6. **Pipeline Execution Errors**: Check individual component logs for detailed error information
+7. **MLflow Issues**: Ensure MLflow server is accessible and artifacts directory has proper permissions
+
+### Debugging Pipeline Issues
+```bash
+# Check if all paths exist
+python -c "from config.paths_config import *; print('All paths configured')"
+
+# Validate configuration
+python -c "from utils.common_functions import read_yaml; from config.paths_config import CONFIG_PATH; print(read_yaml(CONFIG_PATH))"
+
+# Run pipeline with verbose logging
+python pipeline/training_pipeline.py 2>&1 | tee pipeline_execution.log
+```
 
 ## License
 
@@ -270,3 +396,7 @@ python test.py
 ## Contact
 
 [Add your contact information here]
+
+---
+
+**Built with ❤️ for robust, scalable, and maintainable ML pipelines**
