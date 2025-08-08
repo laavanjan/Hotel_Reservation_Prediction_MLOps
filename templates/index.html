@@ -137,8 +137,18 @@
                 <button type="submit">Predict</button>           
 
             </form>
+
+                {% if prediction is not None %}
+                    <div class="resul">
+                        {% if prediction == 0 %}
+                        <p>The Customer is going to cancell his Reservation</p>
+                        {% elif prediction == 1 %}
+                        <p>The Customer is not going to cancell his Reservation</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
         </div>
 
-        
+
     </body>
 </html>
