@@ -12,7 +12,6 @@ A complete MLOps pipeline for predicting hotel reservation cancellations using m
 
 ## 🚀 Deployment Status
 
-✅ **Live Application**: https://ml-project-929445478726.us-central1.run.app
 
 **Current Status**: Successfully deployed on Google Cloud Run
 - **Last Updated**: August 9, 2025
