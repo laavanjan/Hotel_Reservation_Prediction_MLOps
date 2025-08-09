@@ -14,7 +14,7 @@ class CustomException(Exception):
         """
         Returns a detailed error message with traceback information.
         """
-        _, _, tb = error_details.exc_info()
+        _, _, tb = error_details.sys.exc_info()
         file_name = tb.tb_frame.f_code.co_filename
         line_number = tb.tb_lineno
 
